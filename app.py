@@ -3,7 +3,7 @@ import pandas as pd
 import sqlite3
 import os
 
-st.title("Twitter Data Analysis")
+st.title("Twitter Retweet Analysis")
 
 @st.cache_data
 def load_data():
@@ -20,33 +20,19 @@ def setup_database(graph_df, tweet_df):
         os.remove(db_path)
 
     conn = sqlite3.connect(db_path)
-    cursor = conn.cursor()
-
-    # Simpan data ke dalam tabel
     graph_df[['source', 'target']].to_sql('graph', conn, index=False)
     tweet_df.to_sql('tweets', conn, index=False)
-
     conn.commit()
     return conn
 
 conn = setup_database(graph_df, tweet_df)
 
 query_option = st.selectbox("Pilih Query:", [
-    "Follower paling banyak",
-    "Retweet paling banyak",
-    "Combine score (follower + retweet)"
+    "Retweet terbanyak per user",
+    "Total retweet tertinggi (combine score)"
 ])
 
-if query_option == "Follower paling banyak":
-    query = """
-    SELECT username, MAX(followers_count) as followers
-    FROM tweets
-    GROUP BY username
-    ORDER BY followers DESC
-    LIMIT 10
-    """
-
-elif query_option == "Retweet paling banyak":
+if query_option == "Retweet terbanyak per user":
     query = """
     SELECT username, MAX(retweet_count) as retweets
     FROM tweets
@@ -54,13 +40,9 @@ elif query_option == "Retweet paling banyak":
     ORDER BY retweets DESC
     LIMIT 10
     """
-
-elif query_option == "Combine score (follower + retweet)":
+elif query_option == "Total retweet tertinggi (combine score)":
     query = """
-    SELECT username,
-           MAX(followers_count) as followers,
-           SUM(retweet_count) as total_retweets,
-           MAX(followers_count) + SUM(retweet_count) as score
+    SELECT username, SUM(retweet_count) as score
     FROM tweets
     GROUP BY username
     ORDER BY score DESC
