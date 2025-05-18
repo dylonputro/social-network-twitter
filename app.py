@@ -3,7 +3,7 @@ import pandas as pd
 import sqlite3
 import os
 
-st.title("Twitter Retweet Analysis")
+st.title("Twitter Engagement Dashboard")
 
 @st.cache_data
 def load_data():
@@ -28,11 +28,21 @@ def setup_database(graph_df, tweet_df):
 conn = setup_database(graph_df, tweet_df)
 
 query_option = st.selectbox("Pilih Query:", [
-    "Retweet terbanyak per user",
-    "Total retweet tertinggi (combine score)"
+    "Follower paling banyak",
+    "Retweet paling banyak",
+    "Engagement Score (followers + retweets)"
 ])
 
-if query_option == "Retweet terbanyak per user":
+if query_option == "Follower paling banyak":
+    query = """
+    SELECT username, MAX(followers_count) as followers
+    FROM tweets
+    GROUP BY username
+    ORDER BY followers DESC
+    LIMIT 10
+    """
+
+elif query_option == "Retweet paling banyak":
     query = """
     SELECT username, MAX(retweet_count) as retweets
     FROM tweets
@@ -40,12 +50,16 @@ if query_option == "Retweet terbanyak per user":
     ORDER BY retweets DESC
     LIMIT 10
     """
-elif query_option == "Total retweet tertinggi (combine score)":
+
+elif query_option == "Engagement Score (followers + retweets)":
     query = """
-    SELECT username, SUM(retweet_count) as score
+    SELECT username,
+           MAX(followers_count) AS followers,
+           SUM(retweet_count) AS total_retweets,
+           MAX(followers_count) + SUM(retweet_count) AS engagement_score
     FROM tweets
     GROUP BY username
-    ORDER BY score DESC
+    ORDER BY engagement_score DESC
     LIMIT 10
     """
 
