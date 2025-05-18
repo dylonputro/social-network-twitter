@@ -4,7 +4,7 @@ import sqlite3
 import os
 
 # Judul aplikasi
-st.title("Aggregator Query Viewer")
+st.title("Agin query")
 
 # Fungsi load data
 @st.cache_data
